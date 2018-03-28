@@ -24,6 +24,7 @@
 
 #### Method 1
   `service ssh start`
+
   `service ssh stop`
 
 #### Method 2
@@ -135,6 +136,6 @@ done
 #!/bin/bash
 
 for ip in $(seq 1 254); do
-ping -c1 10.11.1.$ip | grep "bytes from" | cut -d" " -f4 | cut -d":" -f1 &
+ping -c1 192.168.1.$ip | grep "bytes from" | cut -d" " -f4 | cut -d":" -f1 &
 done
 ```
