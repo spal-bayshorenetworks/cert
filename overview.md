@@ -28,6 +28,7 @@
 
 #### Method 2
   `systemctl start ssh`
+
   `systemctl stop ssh`
 
 #### Verfication
@@ -35,6 +36,7 @@
 
 ### HTTP Service
 `service apache2 start`
+
 `service apache2 stop`
 
 #### Default location of apache files
@@ -44,12 +46,15 @@
 
 #### Usining init scripts
 `/etc/init.d/apache2 start`
+
 `/etc/init.d/apache2 stop`
 
 ## Boot Persistence
 `update-rc.d ssh enable`
 
+
 `systemctl enable ssh`
+
 `systemctl disable ssh`
 
 ### To get more control
