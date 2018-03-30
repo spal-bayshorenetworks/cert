@@ -68,6 +68,16 @@ Alice: `ncat -v $BOB_IP 4444 --ssl`
 
 To verify one, can use wireshark
 
+### SBD
+
+```
+root@kali:~# sbd -l -p 4444 -e bash -v -n
+listening on port 4444
+root@kali:~# sbd 192.168.1.202 4444
+id
+uid=0(root) gid=0(root) groups=0(root)
+```
+
 ## wireshark
 ### Checking for unencrypted bind shell
 
