@@ -42,6 +42,11 @@ The more info we have, the more likely of success
 ### GHDB "Google Hacking Database"
 http://www.exploit-db.com/google-dorks/
 
+### Email Harvesting
+
+`theharvester -d cisco.com -b google >google.txt`
+`theharvester -d cisco.com -l 10 -b bing >bing.txt`
+
 ## Active Info Gathering
 
 ### DNS Enumeration
@@ -132,11 +137,11 @@ done
 
 #### Additional tools
 
-dnsenum
+##### dnsenum
 
 `dnsenum --dnsserver 8.8.4.4 --enum -f list.txt --noreverse --subfile out.txt megacorpone.com`
 
-dnsrecon
+##### dnsrecon
 
 `dnsrecon -d megacorpone.com -n 8.8.4.4 -t std -a --xml recon.xml`
 
