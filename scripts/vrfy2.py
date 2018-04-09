@@ -8,7 +8,7 @@ print "mm"
 # Create a Socket
 s=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 # Connect to the Server
-connect=s.connect(('10.11.14.70',25))
+connect=s.connect(('10.10.10.10',25))
 # Receive the banner
 banner=s.recv(1024)
 print "ll"
