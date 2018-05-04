@@ -49,3 +49,7 @@ or
 `sc config upnphost obj= ".\LocalSystem" password= ""`
 
 `sc qc upnphost`
+
+### remove the dependency:
+
+`$ sc config upnphost depend= ""`
