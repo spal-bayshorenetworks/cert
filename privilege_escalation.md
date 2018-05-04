@@ -20,8 +20,10 @@ MS11-080 Afd.sys python script
 
 `net localgroup administrators hacker /add`
 
+`net localgroup "Remote Desktop Users" backdoor  /add`
+
 ## Abusing weak Service Permissions on Windows
 
-
+On XP SP0 and SP1 upnphost and SSDPSRV are vulnerable. Use those services to escalate privilage.
 
 ## Abusing weak Service Permissions on Linux
