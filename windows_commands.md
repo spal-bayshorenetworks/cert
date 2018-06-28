@@ -30,6 +30,9 @@
 ### Add user to remotedesktop
 `net localgroup "Remote Desktop Users" backdoor /add`
 
+### Check Administrators
+`net localgroup Administrators`
+
 ### Get directory permission
 
 `cacls Music`
@@ -40,7 +43,13 @@ or
 
 `accesschk.exe -uwcqv "Authenticated Users" *`
 
+`accesschk.exe /accepteula -uwdqs "Users" c:\`
+
 ` accesschk.exe -ucqv SSDPSRV`
+
+This command shows which Windows services members of the Users group have write access to:
+
+`accesschk users -cw \*`
 
 `sc qc upnphost`
 
