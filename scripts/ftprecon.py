@@ -17,10 +17,10 @@ f = open(outfile, "w")
 f.write(results)
 f.close
 
-print "INFO: Performing hydra ftp scan against " + ip_address 
-HYDRA = "hydra -L wordlists/userlist -P wordlists/offsecpass -f -o results/%s_ftphydra.txt -u %s -s %s ftp" % (ip_address, ip_address, port)
-results = subprocess.check_output(HYDRA, shell=True)
-resultarr = results.split("\n")
-for result in resultarr:
-    if "login:" in result:
-	print "[*] Valid ftp credentials found: " + result 
+#print "INFO: Performing hydra ftp scan against " + ip_address 
+#HYDRA = "hydra -L wordlists/userlist -P wordlists/offsecpass -f -o results/%s_ftphydra.txt -u %s -s %s ftp" % (ip_address, ip_address, port)
+#results = subprocess.check_output(HYDRA, shell=True)
+#resultarr = results.split("\n")
+#for result in resultarr:
+#    if "login:" in result:
+#	print "[*] Valid ftp credentials found: " + result 

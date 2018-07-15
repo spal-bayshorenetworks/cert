@@ -148,11 +148,13 @@ def nmapScan(ip_address):
       elif "ssh" in serv:
 	 for port in ports:
 	    port = port.split("/")[0]
-	    multProc(sshEnum, ip_address, port)
+	    #multProc(sshEnum, ip_address, port)
+            print "Skipping SSH Enum\n"
       elif "smtp" in serv:
  	 for port in ports:
 	    port = port.split("/")[0]
-	    multProc(smtpEnum, ip_address, port)
+            print "Skipping SMTP recon\n"
+	    #multProc(smtpEnum, ip_address, port)
       elif "snmp" in serv:
  	 for port in ports:
 	    port = port.split("/")[0]
@@ -168,7 +170,8 @@ def nmapScan(ip_address):
       elif "microsoft-ds" in serv:	
  	 for port in ports:
 	    port = port.split("/")[0]
-	    multProc(smbEnum, ip_address, port)
+	    #multProc(smbEnum, ip_address, port)
+            print "Skipping SMB Enum \n"
       elif "ms-sql" in serv:
  	 for port in ports:
 	    port = port.split("/")[0]
