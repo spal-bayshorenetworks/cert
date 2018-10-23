@@ -10,24 +10,25 @@ if len(sys.argv) != 3:
 
 url = str(sys.argv[1])
 name = str(sys.argv[2])
-folders = ["/usr/share/dirb/wordlists", "/usr/share/dirb/wordlists/vulns"]
+#folders = ["/usr/share/dirb/wordlists", "/usr/share/dirb/wordlists/vulns"]
 
 found = []
 print "INFO: Starting dirb scan for " + url
-for folder in folders:
-    for filename in os.listdir(folder):
+#for folder in folders:
+#    for filename in os.listdir(folder):
+filename = "/usr/share/seclists/Discovery/Web_Content/common.txt"
 
-	outfile = " -o " + "results/exam/" + name + "_dirb_" + filename
-	DIRBSCAN = "dirb %s %s/%s %s -S -r" % (url, folder, filename, outfile)
-        try:
-	    results = subprocess.check_output(DIRBSCAN, shell=True)
-	    resultarr = results.split("\n")
-	    for line in resultarr:
-	        if "+" in line:
-		    if line not in found:
-		        found.append(line)
-	except:
-	    pass
+outfile = " -o " + "results/exam/" + name + "_dirb_" + filename
+DIRBSCAN = "dirb %s %s %s -S -r" % (url, filename, outfile)
+try:
+    results = subprocess.check_output(DIRBSCAN, shell=True)
+    resultarr = results.split("\n")
+    for line in resultarr:
+        if "+" in line:
+	    if line not in found:
+	        found.append(line)
+except:
+    pass
 
 try:
     if found[0] != "":
