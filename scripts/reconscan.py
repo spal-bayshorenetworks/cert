@@ -107,8 +107,9 @@ def nmapScan(ip_address):
    ip_address = ip_address.strip()
    print "INFO: Running general TCP/UDP nmap scans for " + ip_address
    serv_dict = {}
-   TCPSCAN = "nmap -vv -Pn -A -sC -sS -T 4 -p- -oN 'results/exam/%s.nmap' -oX 'results/exam/nmap/%s_nmap_scan_import.xml' %s"  % (ip_address, ip_address, ip_address)
-   UDPSCAN = "nmap -vv -Pn -A -sC -sU -T 4 --top-ports 200 -oN 'results/exam/%sU.nmap' -oX 'results/exam/nmap/%sU_nmap_scan_import.xml' %s" % (ip_address, ip_address, ip_address)
+   #TCPSCAN = "nmap -vv -Pn -A -sC -sS -T 4 -p- -oN 'results/exam/%s.nmap' -oX 'results/exam/nmap/%s_nmap_scan_import.xml' %s"  % (ip_address, ip_address, ip_address)
+   TCPSCAN = "nmap -vv -Pn -sV -sC -sT -T 4 -p- -oN 'results/exam/%s.nmap' -oX 'results/exam/nmap/%s_nmap_scan_import.xml' %s"  % (ip_address, ip_address, ip_address)
+   UDPSCAN = "nmap -vv -Pn -sV -sC -sU -T 4 --top-ports 200 -oN 'results/exam/%sU.nmap' -oX 'results/exam/nmap/%sU_nmap_scan_import.xml' %s" % (ip_address, ip_address, ip_address)
    tcp_nmap_file = 'results/exam/%s.nmap' % (ip_address)
    udp_nmap_file = 'results/exam/%sU.nmap' % (ip_address)
    if not os.path.exists(tcp_nmap_file):

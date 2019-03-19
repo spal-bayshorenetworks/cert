@@ -16,9 +16,9 @@ found = []
 print "INFO: Starting dirb scan for " + url
 #for folder in folders:
 #    for filename in os.listdir(folder):
-filename = "/usr/share/seclists/Discovery/Web_Content/common.txt"
+filename = "/usr/share/seclists/Discovery/Web-Content/common.txt"
 
-outfile = " -o " + "results/exam/" + name + "_dirb_" + filename
+outfile = " -o " + "results/exam/" + name + "_dirb_common.txt" 
 DIRBSCAN = "dirb %s %s %s -S -r" % (url, filename, outfile)
 try:
     results = subprocess.check_output(DIRBSCAN, shell=True)
