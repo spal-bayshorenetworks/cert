@@ -1,29 +1,29 @@
 #!/usr/bin/python
-# Copyright (c) 2003-2012 CORE Security Technologies
+# Copyright (c) 2003-2016 CORE Security Technologies
 #
 # This software is provided under under a slightly modified version
 # of the Apache Software License. See the accompanying LICENSE file
 # for more information.
 #
-# $Id: samrdump.py 592 2012-07-11 16:45:20Z bethus@gmail.com $
-#
 # Description: DCE/RPC SAMR dumper.
 #
 # Author:
 #  Javier Kohen <jkohen@coresecurity.com>
-#  Alberto Solino <bethus@gmail.com>
+#  Alberto Solino (@agsolino)
 #
 # Reference for:
 #  DCE/RPC for SAMR
 
-import socket
-import string
 import sys
-import types
-
-from impacket import uuid, version
-from impacket.dcerpc import dcerpc_v4, dcerpc, transport, samr
+import logging
 import argparse
+import codecs
+
+from impacket.examples import logger
+from impacket import version
+from impacket.nt_errors import STATUS_MORE_ENTRIES
+from impacket.dcerpc.v5 import transport, samr
+from impacket.dcerpc.v5.rpcrt import DCERPCException
 
 
 class ListUsersException(Exception):
@@ -35,18 +35,21 @@ class SAMRDump:
         '445/SMB': (r'ncacn_np:%s[\pipe\samr]', 445),
         }
 
-
-    def __init__(self, protocols = None,
-                 username = '', password = '', domain = '', hashes = None):
+    def __init__(self, protocols=None,
+                 username='', password='', domain='', hashes=None, aesKey=None, doKerberos=False, kdcHost=None):
         if not protocols:
-            protocols = SAMRDump.KNOWN_PROTOCOLS.keys()
+            self.__protocols = SAMRDump.KNOWN_PROTOCOLS.keys()
+        else:
+            self.__protocols = [protocols]
 
         self.__username = username
         self.__password = password
         self.__domain = domain
-        self.__protocols = [protocols]
         self.__lmhash = ''
         self.__nthash = ''
+        self.__aesKey = aesKey
+        self.__doKerberos = doKerberos
+        self.__kdcHost = kdcHost
         if hashes is not None:
             self.__lmhash, self.__nthash = hashes.split(':')
 
@@ -56,9 +59,7 @@ class SAMRDump:
         addr. Addr is a valid host name or IP address.
         """
 
-        encoding = sys.getdefaultencoding()
-
-        print 'Retrieving endpoint list from %s' % addr
+        logging.info('Retrieving endpoint list from %s' % addr)
 
         # Try all requested protocols until one works.
         entries = []
@@ -66,112 +67,89 @@ class SAMRDump:
             protodef = SAMRDump.KNOWN_PROTOCOLS[protocol]
             port = protodef[1]
 
-            print "Trying protocol %s..." % protocol
-            rpctransport = transport.SMBTransport(addr, port, r'\samr', self.__username, self.__password, self.__domain, self.__lmhash, self.__nthash)
+            logging.info("Trying protocol %s..." % protocol)
+            rpctransport = transport.SMBTransport(addr, port, r'\samr', self.__username, self.__password, self.__domain,
+                                                  self.__lmhash, self.__nthash, self.__aesKey,
+                                                  doKerberos=self.__doKerberos, kdcHost=self.__kdcHost)
 
             try:
                 entries = self.__fetchList(rpctransport)
             except Exception, e:
-                print 'Protocol failed: %s' % e
-                raise
+                logging.critical(str(e))
             else:
                 # Got a response. No need for further iterations.
                 break
-
 
         # Display results.
 
         for entry in entries:
             (username, uid, user) = entry
             base = "%s (%d)" % (username, uid)
-            print base + '/Enabled:', ('false', 'true')[user.is_enabled()]
-            print base + '/Last Logon:', user.get_logon_time()
-            print base + '/Last Logoff:', user.get_logoff_time()
-            print base + '/Kickoff:', user.get_kickoff_time()
-            print base + '/Last PWD Set:', user.get_pwd_last_set()
-            print base + '/PWD Can Change:', user.get_pwd_can_change()
-            print base + '/PWD Must Change:', user.get_pwd_must_change()
-            print base + '/Group id: %d' % user.get_group_id()
-            print base + '/Bad pwd count: %d' % user.get_bad_pwd_count()
-            print base + '/Logon count: %d' % user.get_logon_count()
-            items = user.get_items()
-            for i in samr.MSRPCUserInfo.ITEMS.keys():
-                name = items[samr.MSRPCUserInfo.ITEMS[i]].get_name()
-                name = name.encode(encoding, 'replace')
-                print base + '/' + i + ':', name
+            print base + '/FullName:', user['FullName']
+            print base + '/UserComment:', user['UserComment']
+            print base + '/PrimaryGroupId:', user['PrimaryGroupId']
+            print base + '/BadPasswordCount:', user['BadPasswordCount']
+            print base + '/LogonCount:', user['LogonCount']
 
         if entries:
             num = len(entries)
             if 1 == num:
-                print 'Received one entry.'
+                logging.info('Received one entry.')
             else:
-                print 'Received %d entries.' % num
+                logging.info('Received %d entries.' % num)
         else:
-            print 'No entries received.'
+            logging.info('No entries received.')
 
 
     def __fetchList(self, rpctransport):
-        dce = dcerpc.DCERPC_v5(rpctransport)
+        dce = rpctransport.get_dce_rpc()
 
-        encoding = sys.getdefaultencoding()
         entries = []
 
         dce.connect()
         dce.bind(samr.MSRPC_UUID_SAMR)
-        rpcsamr = samr.DCERPCSamr(dce)
 
         try:
-            resp = rpcsamr.connect()
-            if resp.get_return_code() != 0:
-                raise ListUsersException, 'Connect error'
+            resp = samr.hSamrConnect(dce)
+            serverHandle = resp['ServerHandle'] 
 
-            _context_handle = resp.get_context_handle()
-            resp = rpcsamr.enumdomains(_context_handle)
-            if resp.get_return_code() != 0:
-                raise ListUsersException, 'EnumDomain error'
-
-            domains = resp.get_domains().elements()
+            resp = samr.hSamrEnumerateDomainsInSamServer(dce, serverHandle)
+            domains = resp['Buffer']['Buffer']
 
             print 'Found domain(s):'
-            for i in range(0, resp.get_entries_num()):
-                print " . %s" % domains[i].get_name()
+            for domain in domains:
+                print " . %s" % domain['Name']
 
-            print "Looking up users in domain %s" % domains[0].get_name()
-            resp = rpcsamr.lookupdomain(_context_handle, domains[0])
-            if resp.get_return_code() != 0:
-                raise ListUsersException, 'LookupDomain error'
+            logging.info("Looking up users in domain %s" % domains[0]['Name'])
 
-            resp = rpcsamr.opendomain(_context_handle, resp.get_domain_sid())
-            if resp.get_return_code() != 0:
-                raise ListUsersException, 'OpenDomain error'
+            resp = samr.hSamrLookupDomainInSamServer(dce, serverHandle,domains[0]['Name'] )
 
-            domain_context_handle = resp.get_context_handle()
-            resp = rpcsamr.enumusers(domain_context_handle)
-            if resp.get_return_code() != 0 and resp.get_return_code() != 0x105:
-                raise ListUsersException, 'OpenDomainUsers error'
+            resp = samr.hSamrOpenDomain(dce, serverHandle = serverHandle, domainId = resp['DomainId'])
+            domainHandle = resp['DomainHandle']
 
-            done = False
-            while done is False:
-                for user in resp.get_users().elements():
-                    uname = user.get_name().encode(encoding, 'replace')
-                    uid = user.get_id()
+            status = STATUS_MORE_ENTRIES
+            enumerationContext = 0
+            while status == STATUS_MORE_ENTRIES:
+                try:
+                    resp = samr.hSamrEnumerateUsersInDomain(dce, domainHandle, enumerationContext = enumerationContext)
+                except DCERPCException, e:
+                    if str(e).find('STATUS_MORE_ENTRIES') < 0:
+                        raise 
+                    resp = e.get_packet()
 
-                    r = rpcsamr.openuser(domain_context_handle, uid)
-                    print "Found user: %s, uid = %d" % (uname, uid)
+                for user in resp['Buffer']['Buffer']:
+                    r = samr.hSamrOpenUser(dce, domainHandle, samr.MAXIMUM_ALLOWED, user['RelativeId'])
+                    print "Found user: %s, uid = %d" % (user['Name'], user['RelativeId'] )
+                    info = samr.hSamrQueryInformationUser2(dce, r['UserHandle'],samr.USER_INFORMATION_CLASS.UserAllInformation)
+                    entry = (user['Name'], user['RelativeId'], info['Buffer']['All'])
+                    entries.append(entry)
+                    samr.hSamrCloseHandle(dce, r['UserHandle'])
 
-                    if r.get_return_code() == 0:
-                        info = rpcsamr.queryuserinfo(r.get_context_handle()).get_user_info()
-                        entry = (uname, uid, info)
-                        entries.append(entry)
-                        c = rpcsamr.closerequest(r.get_context_handle())
+                enumerationContext = resp['EnumerationContext'] 
+                status = resp['ErrorCode']
 
-                # Do we have more users?
-                if resp.get_return_code() == 0x105:
-                    resp = rpcsamr.enumusers(domain_context_handle, resp.get_resume_handle())
-                else:
-                    done = True
         except ListUsersException, e:
-            print "Error listing users: %s" % e
+            logging.critical("Error listing users: %s" % e)
 
         dce.disconnect()
 
@@ -180,29 +158,58 @@ class SAMRDump:
 
 # Process command-line arguments.
 if __name__ == '__main__':
+    # Init the example's logger theme
+    logger.init()
+    # Explicitly changing the stdout encoding format
+    if sys.stdout.encoding is None:
+        # Output is redirected to a file
+        sys.stdout = codecs.getwriter('utf8')(sys.stdout)
     print version.BANNER
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(add_help = True, description = "This script downloads the list of users for the target system.")
 
-    parser.add_argument('target', action='store', help='[domain/][username[:password]@]<address>')
+    parser.add_argument('target', action='store', help='[[domain/]username[:password]@]<targetName or address>')
     parser.add_argument('protocol', choices=SAMRDump.KNOWN_PROTOCOLS.keys(), nargs='?', default='445/SMB', help='transport protocol (default 445/SMB)')
+    parser.add_argument('-debug', action='store_true', help='Turn DEBUG output ON')
 
     group = parser.add_argument_group('authentication')
 
     group.add_argument('-hashes', action="store", metavar = "LMHASH:NTHASH", help='NTLM hashes, format is LMHASH:NTHASH')
+    group.add_argument('-no-pass', action="store_true", help='don\'t ask for password (useful for -k)')
+    group.add_argument('-k', action="store_true", help='Use Kerberos authentication. Grabs credentials from ccache file (KRB5CCNAME) based on target parameters. If valid credentials cannot be found, it will use the ones specified in the command line')
+    group.add_argument('-aesKey', action="store", metavar = "hex key", help='AES key to use for Kerberos Authentication (128 or 256 bits)')
+    group.add_argument('-dc-ip', action='store',metavar = "ip address",  help='IP Address of the domain controller. If ommited it use the domain part (FQDN) specified in the target parameter')
+
     if len(sys.argv)==1:
         parser.print_help()
         sys.exit(1)
 
     options = parser.parse_args()
 
+    if options.debug is True:
+        logging.getLogger().setLevel(logging.DEBUG)
+    else:
+        logging.getLogger().setLevel(logging.INFO)
+
     import re
 
-    domain, username, password, address = re.compile('(?:(?:([^/@:]*)/)?([^@:]*)(?::([^@]*))?@)?(.*)').match(options.target).groups('')
+    domain, username, password, address = re.compile('(?:(?:([^/@:]*)/)?([^@:]*)(?::([^@]*))?@)?(.*)').match(
+        options.target).groups('')
 
+    #In case the password contains '@'
+    if '@' in address:
+        password = password + '@' + address.rpartition('@')[0]
+        address = address.rpartition('@')[2]
+        
     if domain is None:
         domain = ''
 
-    dumper = SAMRDump(options.protocol, username, password, domain, options.hashes)
-    dumper.dump(address)
+    if options.aesKey is not None:
+        options.k = True
 
+    if password == '' and username != '' and options.hashes is None and options.no_pass is False and options.aesKey is None:
+        from getpass import getpass
+        password = getpass("Password:")
+
+    dumper = SAMRDump(options.protocol, username, password, domain, options.hashes, options.aesKey, options.k, options.dc_ip)
+    dumper.dump(address)
