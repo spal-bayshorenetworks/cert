@@ -77,10 +77,12 @@ there are few workarounds on this, the easiest way is simply wrap your command i
 
 We can enable remote desktop from windows command line by running the following command:
 
-reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+`reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f`
 
 `netsh firewall set service remoteadmin enable`
+
 `netsh firewall set service remotedesktop enable`
+
 `net start termservice`
 
 
@@ -103,6 +105,7 @@ reg query "HKCU\Software\SimonTatham\PuTTY\Sessions"
 
 #### Search for password in registry
 `reg query HKLM /f password /t REG_SZ /si`
+
 `reg query HKCU /f password /t REG_SZ /s`
 
 ### runas
