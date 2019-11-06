@@ -1,0 +1,4 @@
+
+wpscan --disable-tls-checks --url https://192.168.206.144:12380/blogblog/ --plugins-detection aggressive --enumerate ap
+
+
