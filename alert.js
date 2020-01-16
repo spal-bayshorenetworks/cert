@@ -1,1 +1,1 @@
-javascript:alert("external xss");
+javascript:alert('external xss');
